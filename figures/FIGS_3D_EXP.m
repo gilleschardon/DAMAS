@@ -33,8 +33,6 @@ D = dictionary(Pmic, [Xg(:) Yg(:) Zg(:)], k);
 
 tic;[xlh, Tlh, Clh] = cmf_nnls(D, Data, 0); Tnd = toc;
 %%
-clear D
-save 3Dexp
 %% DAMAS-NNLS, Lawson-Hanson algorithm
 
 % we compute the beamforming first (no normalization)
@@ -43,7 +41,8 @@ Cbf = real(Cbf');
 
 tic;[xsn, Tsn, Csn] = damas_nnls(D, Cbf, 0); Tdn = toc;
 
-
+clear D
+save 3Dexp
 
 
 %% 3D plot
@@ -150,4 +149,128 @@ ylabel("Z")
 zlabel("Y")
 
 set(gcf,'Renderer','Painter')
+
+%%
+
+figure
+supportlh = xlh(:) > 0;
+supportdn = xsn(:) > 0;
+
+
+% actual positions and powers
+Xgt = [-1.54, -0.8, 0.15, -0.66];
+Ygt = [-0.43, -0.45, -0.48, -0.68];
+Zgt = [4.39 4.41 4.43 4.43];
+
+pp = [63.8 62.5 61.1 63];
+
+subplot(3, 2, 1)
+
+scatter(Xgt, Ygt, 50,'xk', 'linewidth', 2)
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([-1, 0])
+
+xlabel("X")
+ylabel("Y")
+
+title('(a) Sources')
+
+colorbar
+
+subplot(3, 2, 2)
+
+scatter(Xgt, Zgt, 50,'xk', 'linewidth', 2)
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([4, 5])
+
+xlabel("X")
+ylabel("Y")
+colorbar
+
+subplot(3, 2, 3)
+
+scatter(Xg(supportlh), Yg(supportlh), (xlh(supportlh)+eps)/10000, 10*log10(xlh(supportlh)), 'filled')
+hold on
+scatter(Xgt, Ygt, 'xw')
+
+colorbar
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([-1, 0])
+
+xlabel("X")
+ylabel("Y")
+
+title('(a) CMF-NNLS')
+
+subplot(3, 2, 4)
+
+scatter(Xg(supportlh), Zg(supportlh), (xlh(supportlh)+eps)/10000, 10*log10(xlh(supportlh)), 'filled')
+hold on
+scatter(Xgt, Zgt, 'xw')
+
+colorbar
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([4, 5])
+
+xlabel("X")
+ylabel("Z")
+
+
+subplot(3, 2, 5)
+
+scatter(Xg(supportdn), Yg(supportdn), (xsn(supportdn)+eps)/10000, 10*log10(xsn(supportdn)), 'filled')
+hold on
+scatter(Xgt, Ygt, 'xw')
+
+colorbar
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([-1, 0])
+
+xlabel("X")
+ylabel("Y")
+title('(b) DAMAS-NNLS')
+
+subplot(3, 2, 6)
+
+scatter(Xg(supportdn), Zg(supportdn), (xsn(supportdn)+eps)/10000, 10*log10(xsn(supportdn)), 'filled')
+hold on
+scatter(Xgt, Zgt, 'xw')
+
+colorbar
+
+ax = gca;
+ax.CLim =[40 62];
+
+axis equal
+xlim([-2, 1])
+ylim([4, 5])
+
+xlabel("X")
+ylabel("Z")
+colormap(flipud(gray))
 

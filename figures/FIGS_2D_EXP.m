@@ -1,6 +1,3 @@
-
-
-
 %% Compares DAMAS, quadprog, lsqnonneg and Lawson-Hanson on experimental data
 %
 % 2D grid of 10 800 points
@@ -10,7 +7,7 @@
 % quadprog
 % Lanson-Hawnson, with and without factorization
 
-% Approx 45min.
+% Approx 1h
 
 
 
@@ -38,6 +35,7 @@ Lz = 1;
 xx = linspace(-2, 1, Lx)';
 yy = linspace(-1, 0, Ly)';
 zz = 4.4;
+
 [Xg, Yg, Zg] = meshgrid(xx, yy, zz);
 
 % dictionary of sources
@@ -200,6 +198,7 @@ grid on
 
 %% Maps: DAMAS
 
+% actual positions
 Xgt = [-1.53, -0.8, 0.15, -0.66];
 Ygt = [-0.43, -0.45, -0.47, -0.68];
 m = 20;

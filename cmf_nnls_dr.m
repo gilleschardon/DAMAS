@@ -35,7 +35,7 @@ while (any(R)) && (max(w(R)) > epsilon)
     %% small LS problem
     DR = D(:, ~R);
     aDR2 = (abs(DR).^2);
-    Gram = abs(DR'*DR).^2 - aDR2' * aDR2;% (abs(DR').^2) *  (abs(DR).^2);
+    Gram = abs(DR'*DR).^2 - aDR2' * aDR2;
     
     s(~R) = Gram\ proddamastranspose(D(:, ~R), Data);
        
@@ -54,7 +54,7 @@ while (any(R)) && (max(w(R)) > epsilon)
         DR = D(:, ~R);
         aDR2 = (abs(DR).^2);
 
-        Gram = abs(DR'*DR).^2 - aDR2' * aDR2; %(abs(DR').^2) *  (abs(DR).^2);
+        Gram = abs(DR'*DR).^2 - aDR2' * aDR2;
     
         s(~R) = Gram\ proddamastranspose(D(:, ~R), Data);
 

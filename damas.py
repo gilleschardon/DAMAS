@@ -174,7 +174,68 @@ def lawson_hanson(prodA, solve, D, b, verbose = True):
     except e:
         if verbose:
             unique = False
-            print('Solution is not unique, T = {time.perf_counter() - T0:.2}')
+            print(f'Solution is not unique, T = {time.perf_counter() - T0:.2}')
         
             
     return x, unique
+
+
+
+def beamforming_noweight(D, Data):
+
+    return np.real(  np.sum((D.conj().T @ Data) * D.T, 1))
+
+def beamforming_weight(D, Data):
+    Dbf = D / np.sum(np.abs(D)**2, 0);
+    return np.real(  np.sum((Dbf.conj().T @ Data) * Dbf.T, 1))
+
+def orthogonal_beamforming(D, Data, K):
+    Dbf = D / np.sum(np.abs(D)**2, 0);
+    w, v = la.eigh(Data)    
+    obf = np.zeros([D.shape[1]])
+    for u in range(K):
+        l = w[-u-1]
+        vec = v[:, -u-1]
+        bfvec = l * np.abs(Dbf.conj().T @ vec)
+        idx = np.argmax(bfvec)
+        obf[idx] = obf[idx] + bfvec[idx]
+    return obf
+
+def CLEAN(D, Data, K, phi):
+    Dbf = D / np.sum(np.abs(D)**2, 0);
+    
+    Data = np.copy(Data)
+
+    cbf = np.zeros([D.shape[1]])
+    
+    for u in range(K):
+        BF = beamforming_noweight(Dbf, Data)
+        idx = np.argmax(BF)
+        a = phi * BF[idx]
+        
+        cbf[idx] = cbf[idx] + a
+        Data = Data - a * D[:, idx:idx+1] @ D[:, idx:idx+1].conj().T
+    
+    return cbf
+
+def CLEANSC(D, Data, K, phi):
+    T0 = time.perf_counter()
+
+    Dbf = D / np.sum(np.abs(D)**2, 0);
+    
+    Data = np.copy(Data)
+    
+    cbf = np.zeros([D.shape[1]])
+    
+    for u in range(K):
+        BF = beamforming_noweight(Dbf, Data)
+        idx = np.argmax(BF)
+        p = BF[idx]
+        a = phi * p
+        cbf[idx] = cbf[idx] + a
+        
+        h = Data @ Dbf[:, idx:idx+1] / p
+        Data = Data - a * h @ h.conj().T
+    print(f'T = {time.perf_counter() - T0:.2}')
+
+    return cbf

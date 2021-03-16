@@ -1,9 +1,8 @@
 
 
-%% Compares DAMAS and CMF-NNLS 
-%%  on simulated data
+%% Compares DAMAS, CMF-NNLS, DAMAS-NNLS
+%% on simulated data
 %
-% 2D grid of 2500 points
 
 addpath('..')
 % we do not use the data, just the array geometry
@@ -48,7 +47,7 @@ sigma_noise1 = 4e6;
 sigma_noise2 = 1.6e7;
 
 % number of snapshots
-N = 1000;
+N = 500;
 
 % large DAMAS matrix
 DD = abs(D'*D).^2;
@@ -76,17 +75,18 @@ mask3 = logical(mask3);
 
 
 % sample size
-Nt = 10;
+Nt = 200;
 
 
 % powers of the sources
+
 % beamforing with diagonal removal
 PBF = zeros(4, Nt);
 % DAMAS without/with diagonal removal
 PD = zeros(4, Nt);
 % LH without/with noise estimation
 PLH = zeros(4, Nt);
-PLHnoise = zeros(3, Nt);
+% DAMAS-NNLS
 PDN = zeros(4, Nt);
 
 JJ = ones(64)-eye(64);
@@ -107,7 +107,7 @@ LHnoiseest = zeros(64, Nt);
 % 
 % save DDdr DDdr
 %% otherwise load from a precomputed matrix
-%load DDdr
+load DDdr
 
 % DAMAS iterations
 Niter = 1e7;
@@ -124,6 +124,7 @@ C2 = C2 / sum(abs(C2(:)).^2);
 C3 = D(:, idx(3)) * D(:, idx(3))';
 C3 = C3 - diag(diag(C3));
 C3 = C3 / sum(abs(C3(:)).^2);
+
 for u = 1:Nt
     
     waitbar(u/Nt)
@@ -145,8 +146,6 @@ for u = 1:Nt
 
     
     
-%    PBF(:, u) = Cbfp(idx);
- 
      PBF(1, u) = real(trace(Data*C1));
      PBF(2, u) = real(trace(Data*C2));
      PBF(3, u) = real(trace(Data*C3));
@@ -171,7 +170,6 @@ Clh(u) = norm(JJ.*(D*diag(xlh)*D' - Data), 'fro')^2;
 PLH(1, u) = sum(xlh(mask1));
 PLH(2, u) = sum(xlh(mask2));
 PLH(3, u) = sum(xlh(mask3));
-
 PLH(4, u) = sum(xlh);
 
 
@@ -188,7 +186,7 @@ PD(2, u) = sum(xd(mask2));
 PD(3, u) = sum(xd(mask3));
 PD(4, u) = sum(xd);
 
-
+%% DAMAS-NNLS
 tic
 xdn = damas_nnls_dr(D, real(CbfDRdamas), 0);
 Tdn(u) = toc;
@@ -201,7 +199,7 @@ PDN(4, u) = sum(xdn);
 
 end
 
-%clear DDdr DD
+clear DDdr DD D Dbf
 
 save 2Dsim
 
@@ -209,145 +207,10 @@ save 2Dsim
 close all
 
 bins = (-15:0.5:25);
-figure
 
 color1 = [0.4 0.4 0.4];
 color2 = color1; 
-color3 = color2;[0.0 0.8 0.8];
-
-B1 = [-4 4];
-B2 = B1;
-B3 = B1;
-B4 = [-4 0];
-
-subplot(4, 4, 1)
-
-hold on
-histogram( 10*log10(PBF(1, :)) - 10*log10(sigma_source1*2), bins, 'FaceColor', color1)
-grid on
-xlim(B1)
-ylabel('Beamforming')
-title(sprintf('\\Delta_1, RMSE=%.1fdB', sqrt(mean((10*log10(PBF(1, :)) - 10*log10(sigma_source1*2)).^2))))
-
-subplot(4, 4, 2)
-hold on
-histogram( 10*log10(PBF(2, :))- 10*log10(sigma_source2*2), bins, 'FaceColor', color2)
-grid on
-xlim(B2)
-title(sprintf('\\Delta_2, RMSE=%.1fdB', sqrt(mean((10*log10(PBF(2, :)) - 10*log10(sigma_source2*2)).^2))))
-
-
-subplot(4, 4, 3)
-hold on
-histogram( 10*log10(PBF(3, :))- 10*log10(sigma_source3*2), bins, 'FaceColor', color3)
-grid on
-xlim(B3)
-title(sprintf('\\Delta_3, RMSE=%.1fdB', sqrt(mean((10*log10(PBF(3, :)) - 10*log10(sigma_source3*2)).^2))))
-
-
-
-
-subplot(4, 4, 5)
-hold on
-histogram( 10*log10(PLH(1, :))- 10*log10(sigma_source1*2), bins, 'FaceColor', color1)
-grid on
-xlim(B1)
-title(sprintf('\\Delta_1, RMSE=%.1fdB', sqrt(mean((10*log10(PLH(1, :)) - 10*log10(sigma_source1*2)).^2))))
-
-ylabel('CMF-NNLS')
-
-
-subplot(4, 4, 6)
-hold on
-histogram( 10*log10(PLH(2, :))- 10*log10(sigma_source2*2), bins, 'FaceColor', color2)
-grid on
-xlim(B2)
-title(sprintf('\\Delta_2, RMSE=%.1fdB', sqrt(mean((10*log10(PLH(2, :)) - 10*log10(sigma_source2*2)).^2))))
-
-subplot(4, 4, 7)
-
-hold on
-histogram( 10*log10(PLH(3, :))- 10*log10(sigma_source3*2), bins, 'FaceColor', color3)
-grid on
-xlim(B3)
-title(sprintf('\\Delta_3, RMSE=%.1fdB', sqrt(mean((10*log10(PLH(3, :)) - 10*log10(sigma_source3*2)).^2))))
-
-
-subplot(4, 4, 8)
-
-hold on
-histogram( 10*log10(sum(PLH(1:3, :), 1)) - 10*log10(PLH(4, :)), bins, 'FaceColor', color3)
-grid on
-xlim(B4)
-
-title(sprintf('\\Delta_0, RMSE=%.1fdB',  sqrt(mean((10*log10(sum(PLH(1:3, :), 1)) - 10*log10(PLH(4, :))).^2))))
-
-subplot(4, 4, 9)
-
-hold on
-histogram( 10*log10(PD(1, :))- 10*log10(sigma_source1*2), bins, 'FaceColor', color1)
-grid on
-xlim(B1)
-ylabel('DAMAS')
-title(sprintf('\\Delta_1, RMSE=%.1fdB', sqrt(mean((10*log10(PD(1, :)) - 10*log10(sigma_source1*2)).^2))))
-
-subplot(4, 4, 10)
-
-hold on
-grid on
-histogram( 10*log10(PD(2, :))- 10*log10(sigma_source2*2), bins, 'FaceColor', color2)
-xlim(B2)
-title(sprintf('\\Delta_2, RMSE=%.1fdB', sqrt(mean((10*log10(PD(2, :)) - 10*log10(sigma_source2*2)).^2))))
-
-subplot(4, 4, 11)
-
-hold on
-histogram( 10*log10(PD(3, :))- 10*log10(sigma_source3*2), bins, 'FaceColor', color3)
-grid on
-xlim(B3)
-title(sprintf('\\Delta_3, RMSE=%.1fdB', sqrt(mean((10*log10(PD(3, :)) - 10*log10(sigma_source3*2)).^2))))
-
-subplot(4, 4, 12)
-
-hold on
-histogram( 10*log10(sum(PD(1:3, :), 1)) - 10*log10(PD(4, :)), bins, 'FaceColor', color3)
-grid on
-xlim(B4)
-title(sprintf('\\Delta_0, RMSE=%.1fdB',  sqrt(mean((10*log10(sum(PD(1:3, :), 1)) - 10*log10(PD(4, :))).^2))))
-
-subplot(4, 4, 13)
-
-hold on
-histogram( 10*log10(PDN(1, :))- 10*log10(sigma_source1*2), bins, 'FaceColor', color1)
-grid on
-xlim(B1)
-ylabel('DAMAS-NNLS')
-title(sprintf('\\Delta_1, RMSE=%.1fdB', sqrt(mean((10*log10(PDN(1, :)) - 10*log10(sigma_source1*2)).^2))))
-
-subplot(4, 4, 14)
-
-hold on
-histogram( 10*log10(PDN(2, :))- 10*log10(sigma_source2*2), bins, 'FaceColor', color2)
-grid on
-xlim(B2)
-title(sprintf('\\Delta_2, RMSE=%.1fdB', sqrt(mean((10*log10(PDN(2, :)) - 10*log10(sigma_source2*2)).^2))))
-
-subplot(4, 4, 15)
-
-hold on
-histogram( 10*log10(PDN(3, :))- 10*log10(sigma_source3*2), bins, 'FaceColor', color3)
-grid on
-xlim(B3)
-title(sprintf('\\Delta_3, RMSE=%.1fdB', sqrt(mean((10*log10(PDN(3, :)) - 10*log10(sigma_source3*2)).^2))))
-
-subplot(4, 4, 16)
-
-hold on
-histogram( 10*log10(sum(PDN(1:3, :), 1)) - 10*log10(PDN(4, :)), bins, 'FaceColor', color3)
-grid on
-xlim(B4)
-title(sprintf('\\Delta_0, RMSE=%.1fdB',  sqrt(mean((10*log10(sum(PDN(1:3, :), 1)) - 10*log10(PDN(4, :))).^2))))
-
+color3 = color2;
 
 %%
 m = 60;
@@ -413,3 +276,41 @@ ax = gca;
 ax.CLim =BBB;
 title("(d) DAMAS-NNLS")
 
+%%
+figure
+
+B1 = [-3 1];
+B2 = [-4 1];
+B3 = [-8 1];
+B4 = [-3 0];
+
+subplot(3, 4, 1)
+plothist(PD(1, :), sigma_source1*2, B1, bins, color2, '', 'DAMAS')
+subplot(3, 4, 2)
+plothist(PD(2, :), sigma_source2*2, B2, bins, color2, '', '')
+subplot(3, 4, 3)
+plothist(PD(3, :), sigma_source3*2, B3, bins, color2, '', '')
+subplot(3, 4, 4)
+plothist(sum(PD(1:3, :)),PD(4, :),  B4, bins, color2, '', '')
+
+
+subplot(3, 4, 5)
+plothist(PLH(1, :), sigma_source1*2, B1, bins, color2, '', 'CMF-NNLS')
+subplot(3, 4, 6)
+plothist(PLH(2, :), sigma_source2*2, B2, bins, color2, '', '')
+subplot(3, 4, 7)
+plothist(PLH(3, :), sigma_source3*2, B3, bins, color2, '', '')
+subplot(3, 4, 8)
+plothist(sum(PLH(1:3, :)),PLH(4, :),  B4, bins, color2, '', '')
+
+
+subplot(3, 4, 9)
+plothist(PDN(1, :), sigma_source1*2, B1, bins, color2, '\Delta_1', 'DAMAS-NNLS')
+subplot(3, 4, 10)
+plothist(PDN(2, :), sigma_source2*2, B2, bins, color2, '\Delta_2', '')
+subplot(3, 4, 11)
+plothist(PDN(3, :), sigma_source3*2, B3, bins, color2, '\Delta_3', '')
+subplot(3, 4, 12)
+plothist(sum(PDN(1:3, :)), PDN(4, :), B4, bins, color2, '\Delta_0', '')
+
+set(gcf,'Renderer','Painter')

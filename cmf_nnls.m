@@ -4,8 +4,6 @@ function [x, res, Tlh, w] = cmf_nnls(D, Data, epsilon)
 
 n = size(D, 2);
 
-tic;
-
 R = true(n, 1);
 N = 1:n;
 
@@ -77,10 +75,6 @@ end
     DR = D(:, ~R);
     Gram = abs(DR'*DR).^2;
 
-    min(w(~R))
-    max(w(~R))
-    min(w(R))
-    max(w(R))
     try chol(Gram);
     disp('Solution is unique')
     catch ME

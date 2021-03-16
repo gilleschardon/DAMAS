@@ -8,12 +8,12 @@ Created on Tue Dec  8 14:21:40 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib
 from scipy.io import loadmat
 import damas
 
 
-mat = loadmat("damasdemo.mat")
+mat = loadmat("damasdata2D.mat")
 
 # dictionary of sources
 def dictionary(PX, PS, k):
@@ -38,26 +38,25 @@ idx = np.argsort(Norms)[:N]
 
 Pmic = Pmic[idx, :]
 
-Data = Data[:, idx]
-Data = Data[idx, :]
+Data = Data[np.ix_(idx, idx)]
 
 # source grid
 Lx = 180
 Ly = 60
 xx = np.linspace(-2, 1, Lx+1)
-yy = np.linspace(-0.75, -0.25, Ly+1)
+yy = np.linspace(-1, 0, Ly+1)
 
 xx = xx[:-1]
 yy = yy[:-1]
 
 # plotting grid
 xxp = np.linspace(-2, 1, Lx+1)
-yyp = np.linspace(-0.75, -0.25, Ly+1)
+yyp = np.linspace(-1, 0, Ly+1)
 
 Xg, Yg = np.meshgrid(xx, yy);
 Xp, Yp = np.meshgrid(xxp, yyp);
 
-Z = 4.3;
+Z = 4.4;
 
 # dictionary
 D = dictionary(Pmic,
@@ -86,29 +85,33 @@ damas_nnls_map, _ = damas.damas_nnls_lh(D, Data)
 
 damas_nnls_dr_map, _ = damas.damas_nnls_dr_lh(D, Data)
 
+cmfDB = 10*np.log10(cmf_map)
+
+def plotmap(pmap, name, dynrange):
+    mapDB = 10*np.log10(pmap)
+    plt.figure()
+    m = np.max(mapDB)
+    plt.pcolor(Xp, Yp, np.reshape(mapDB, [Ly, Lx]), cmap='hot', vmax=m, vmin=m-dynrange)
+    current_cmap = plt.cm.get_cmap()
+    current_cmap.set_bad(color='black')
+    plt.axis('image')
+    plt.title(name)
+    ax = plt.gca()
+    ax.set_facecolor('black')
+
+
 
 #%%
-plt.figure()
-plt.pcolor(Xp, Yp, np.reshape(bf_map, [Ly, Lx]), cmap='hot')
-plt.axis('image')
-plt.title('Beamforming')
 
-plt.figure()
-plt.pcolor(Xp, Yp, np.reshape(cmf_map, [Ly, Lx]), cmap='hot')
-plt.axis('image')
-plt.title('CMF-NNLS')
 
-plt.figure()
-plt.pcolor(Xp, Yp, np.reshape(cmf_map_dr, [Ly, Lx]), cmap='hot')
-plt.axis('image')
-plt.title('CMF-NNLS diagonal removal')
+plotmap(bf_map, 'Beamforming', 40)
+plotmap(cmf_map, 'CMF-NNLS', 40)
+plotmap(cmf_map_dr, 'CMF-NNLS DR', 40)
+plotmap(damas_nnls_map, 'DAMAS-NNLS', 40)
+
 
 plt.figure()
 plt.stem(cmf_map_noise[Xg.size:])
 plt.title('CMF-NNLS noise estimation - noise')
 
-plt.figure()
-plt.pcolor(Xp, Yp, np.reshape(damas_nnls_map, [Ly, Lx]), cmap='hot')
-plt.axis('image')
-plt.title('DAMAS-NNLS')
 

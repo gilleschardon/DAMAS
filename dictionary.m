@@ -14,6 +14,4 @@ d = sqrt(dx.^2 + dz.^2 + dy.^2);
 
 D = exp(- 1i * k * d)./d;
 
-D = D;
-
 end
