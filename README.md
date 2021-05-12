@@ -3,7 +3,7 @@
 Implementation of CMF-NNLS and DAMAS-NNLS, python and Matlab
 
 This code reproduces the results of
-Theoretical analysis of the DAMAS algorithm and efficient implementation for large-scale problems
+[Theoretical analysis of the DAMAS algorithm and efficient implementation for large-scale problems](https://gilleschardon.fr/papers/damascmf.pdf)
 
 
 ## Demos
