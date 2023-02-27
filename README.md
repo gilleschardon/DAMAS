@@ -5,6 +5,7 @@ Implementation of CMF-NNLS and DAMAS-NNLS, python and Matlab
 This code reproduces the results of
 [Theoretical analysis of the DAMAS algorithm and efficient implementation of the Covariance Matrix Fitting method for large-scale problems](https://gilleschardon.fr/papers/damascmf.pdf)
 
+This code is not maintained. See [acosolo](https://github.com/gilleschardon/acosolo) for python and matlab implementations.
 
 ## Demos
 
